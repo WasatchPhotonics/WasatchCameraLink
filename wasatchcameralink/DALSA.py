@@ -4,6 +4,7 @@ Uses a modified version of the Sapera .NET example code to read single
 lines of data from the device at a time.
 """
 
+import os
 import sys
 import struct
 import logging
@@ -25,21 +26,35 @@ class SaperaCMD(object):
         self.command = "grab"
         self.index = "0"
 
+        # Disable startupinfo if you need to see the sapera application
+        # in the windowing system
+        self.startupinfo = subprocess.STARTUPINFO()
+        self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
 
     def setup_pipe(self):
         """ Create a pipe connection to the csharp version of the single
         line grabber on the console example from Dalsa.
         """
         log.info("Setup pipe device")
-        prefix = "wasatchcameralink\\GrabConsole\\CSharp\\bin\\Debug\\"
 
+        # Get the location of this module on disk, use it to generate
+        # the absolute pathname to the .net application
+        path, file_name = os.path.split(__file__)
+
+        prefix = "%s\\GrabConsole\\CSharp\\bin\\Debug\\" % path
         cmd_path = "%s\\SapNETCSharpGrabConsole.exe" % prefix
+
         ccf_file = "%s\\%s.ccf" % (prefix, self.ccf)
+
         log.info("open %s, %s", cmd_path, ccf_file)
+            
+        opts = [cmd_path, self.command, self.card, self.index, ccf_file]
+
         try:
-            opts = [cmd_path, self.command, self.card, 
-                    self.index, ccf_file]
-            self.pipe = Popen(opts, stdin=PIPE, stdout=PIPE)
+            self.pipe = Popen(opts, 
+                              stdin=PIPE, stdout=PIPE,
+                              startupinfo=self.startupinfo)
         except:
             log.critical("Failure to setup pipe: " + str(sys.exc_info()))
             return False
