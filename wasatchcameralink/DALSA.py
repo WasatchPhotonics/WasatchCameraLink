@@ -48,7 +48,7 @@ class SaperaCMD(object):
                     log.info("pixels is [%s]" % self.pixels)
 
         except:
-            log.critical("Problem proccessing" + str(ccf_file) + \
+            log.critical("CCF proccessing" + str(ccf_file) + \
                           str(sys.exc_info()))
             return 0, "fail"
 
@@ -91,10 +91,7 @@ class SaperaCMD(object):
             
         self.trigger_next() # just hit enter
 
-        log.debug("Open file")
         result, data = self.grab_data()
-        log.debug(str(data[0:3]))
-        log.debug("Done file")
 
         self.trigger_repeat()
 
@@ -155,6 +152,7 @@ class SaperaCMD(object):
                 pos += 2
 
             return 1, img_data
+
         except:
             log.critical("Problem reading " + str(in_filename) + \
                           str(sys.exc_info()))
@@ -189,6 +187,20 @@ class Cobra(SaperaCMD):
     def __init__(self, card="Xcelera-CL_LX1_1", ccf="cobra"):
         super(Cobra, self).__init__()
         log.debug("Cobra Startup")
+
+        self.card = card
+        self.ccf = ccf
+
+        self.set_pixel_size()
+
+
+class BaslerSprint4K(SaperaCMD):
+    """ Use a Dalsa frame grabber and the stdin/stdout customized
+    example from Sapera.
+    """
+    def __init__(self, card="Xcelera-CL_LX1_1", ccf="BaslerSprint4K"):
+        super(BaslerSprint4K, self).__init__()
+        log.debug("Basler sprint 4k Startup")
 
         self.card = card
         self.ccf = ccf
