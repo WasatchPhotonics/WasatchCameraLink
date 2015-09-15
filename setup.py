@@ -12,7 +12,7 @@ config = {
     "author_email": "nharrington@wasatchphotonics.com.",
     "version": "1.0.0",
     "install_requires": ["numpy"],
-    "packages": ["WasatchCameraLink"],
+    "packages": ["wasatchcameralink"],
     "scripts": [],
     "name": "WasatchCameraLink"
 }
