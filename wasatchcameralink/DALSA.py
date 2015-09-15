@@ -13,13 +13,17 @@ from subprocess import Popen, PIPE
 
 log = logging.getLogger(__name__)
 
-class Cobra(object):
-    """ Use a Dalsa frame grabber and the stdin/stdout customized
-    example from Sapera.
+class SaperaCMD(object):
+    """ Base class that calls the sapera grab console modified
+    demonstration program with the supplied parameters and returns the
+    data.
     """
     def __init__(self):
-        super(Cobra, self).__init__()
-        log.debug("Cobra Startup")
+        super(SaperaCMD, self).__init__()
+        self.card = None
+        self.ccf = None
+        self.command = "grab"
+        self.index = "0"
 
 
     def setup_pipe(self):
@@ -29,11 +33,12 @@ class Cobra(object):
         log.info("Setup pipe device")
         prefix = "wasatchcameralink\\GrabConsole\\CSharp\\bin\\Debug\\"
 
-        cmd = "%s\\SapNETCSharpGrabConsole.exe" % prefix
-        ccf = "%s\\cobra.ccf" % prefix
-        log.debug("open %s, %s", cmd, ccf)
+        cmd_path = "%s\\SapNETCSharpGrabConsole.exe" % prefix
+        ccf_file = "%s\\%s.ccf" % (prefix, self.ccf)
+        log.info("open %s, %s", cmd_path, ccf_file)
         try:
-            opts = [cmd, 'grab', 'Xcelera-CL_LX1_1', '0', ccf]
+            opts = [cmd_path, self.command, self.card, 
+                    self.index, ccf_file]
             self.pipe = Popen(opts, stdin=PIPE, stdout=PIPE)
         except:
             log.critical("Failure to setup pipe: " + str(sys.exc_info()))
@@ -46,17 +51,8 @@ class Cobra(object):
         """ Issue a newline, get a line of data over the pipes.
         """
 
-        line = self.pipe.stdout.readline().replace('\n', '')
-        log.info("READ " + str(line))
-        log.info("WR enter to trigger snap")
-        log.info("\n")
-        self.pipe.stdin.write("\n")
-
-        line = self.pipe.stdout.readline().replace('\n', '')
-        log.info("READ " + str(line))
-        log.info("WR enter to trigger save")
-        log.info("\n")
-        self.pipe.stdin.write("\n")
+        self.trigger_snap()
+        self.trigger_save()
 
         line = self.pipe.stdout.readline().replace('\n', '')
         log.info("READ " + str(line))
@@ -76,6 +72,24 @@ class Cobra(object):
         log.info("\n")
 
         return result, data
+
+    def trigger_save(self):
+        """ Convenience function to illustrate the order of operations.
+        """
+        line = self.pipe.stdout.readline().replace('\n', '')
+        log.debug("READ " + str(line))
+        log.debug("WR enter to trigger save")
+        log.debug("\n")
+        self.pipe.stdin.write("\n")
+
+    def trigger_snap(self):
+        """ Convenience function to illustrate the order of operations.
+        """
+        line = self.pipe.stdout.readline().replace('\n', '')
+        log.debug("READ " + str(line))
+        log.debug("WR enter to trigger snap")
+        log.debug("\n")
+        self.pipe.stdin.write("\n")
 
     def grab_data(self, in_filename="test.raw"):
         """ Read from the given raw pixel file as extracted from the
@@ -121,3 +135,17 @@ class Cobra(object):
             log.warn("close pipe fail: " + str(sys.exc_info()))
 
         return 1
+
+
+class Cobra(SaperaCMD):
+    """ Use a Dalsa frame grabber and the stdin/stdout customized
+    example from Sapera.
+    """
+    def __init__(self, card="Xcelera-CL_LX1_1", ccf="cobra"):
+        super(Cobra, self).__init__()
+        log.debug("Cobra Startup")
+
+        self.card = card
+        self.ccf = ccf
+
+
