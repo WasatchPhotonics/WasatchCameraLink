@@ -64,7 +64,7 @@ class Cobra(object):
 
         #time.sleep(1)
         log.info("Open file")
-        result, data = self.grab_data("test.raw")
+        result, data = self.grab_data()
         log.info(str(data[0:3]))
         log.info("Done file")
         #time.sleep(1)
@@ -77,7 +77,7 @@ class Cobra(object):
 
         return result, data
 
-    def grab_data(self, in_filename="tools\\test.raw"):
+    def grab_data(self, in_filename="test.raw"):
         """ Read from the given raw pixel file as extracted from the
         DALSA command line example program. Return list of pixel values
         after unpacking.
