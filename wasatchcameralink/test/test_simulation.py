@@ -1,35 +1,48 @@
-""" simulated pipe device test cases
+""" simulated cameralink device test cases
 """
 
 import unittest
 
-from testfixtures import LogCapture
+from wasatchcameralink import simulation
 
-from linegrab.devices import SimulatedPipeDevice
+class TestSimulatedSpectra(unittest.TestCase):
 
-class Test(unittest.TestCase):
-    
     def setUp(self):
-        self.dev = SimulatedPipeDevice()
-        self.log_capture = LogCapture()
-        self.log_name = "linegrab.devices"
+        self.dev = simulation.SimulatedSpectraDevice()
 
-    def tearDown(self):
-        self.log_capture.uninstall()
-
-    def test_log_captures(self):
-        # verification of log matching functionality
-        from logging import getLogger
-        getLogger().info('a message')
-        self.log_capture.check(('root', 'INFO', 'a message'))
-
-    def test_module_logging(self):
+    def test_pipe_cycle(self):
         self.assertTrue(self.dev.setup_pipe())
 
-        gr = self.log_name
-        self.log_capture.check(
-            (gr, "INFO", "Setup pipe device"),
-            )
+        result, data = self.dev.grab_pipe()
+        self.assertTrue(result)
+        self.assertEqual(len(data), 2048)
+
+        self.assertTrue(self.dev.close_pipe())
+
+    def test_pipe_random_pattern(self):
+        self.assertTrue(self.dev.setup_pipe())
+
+        result, data = self.dev.grab_pipe()
+        self.assertTrue(result)
+        self.assertEqual(len(data), 2048)
+
+
+        # Roll through a bunch of simulated acquisitions, repeat
+        for i in range(500):
+            result, data = self.dev.grab_pipe()
+
+            # Psuedo-verify the randomness
+            self.assertNotEqual(data[0], 0)
+            self.assertNotEqual(data[-1], 0)
+
+            self.assertNotEqual(data[0], data[-1])
+            self.assertNotEqual(data[100], data[-100])
+
+
+class TestSimulatedPipe(unittest.TestCase):
+    
+    def setUp(self):
+        self.dev = simulation.SimulatedPipeDevice()
 
     def test_pipe_cycle(self):
         self.assertTrue(self.dev.setup_pipe())
