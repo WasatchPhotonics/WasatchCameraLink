@@ -31,6 +31,26 @@ class SaperaCMD(object):
         self.startupinfo = subprocess.STARTUPINFO()
         self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
+    def set_pixel_size(self):
+        """ Process the specified ccf file, store the number of pixels.
+        """
+        path, file_name = os.path.split(__file__)
+        prefix = "%s\\GrabConsole\\CSharp\\bin\\Debug\\" % path
+        ccf_file = "%s\\%s.ccf" % (prefix, self.ccf)
+
+        log.debug("Find ccf file: %s" % ccf_file)
+        try:
+            in_file = open(ccf_file)
+            for line in in_file.readlines():
+                if "Crop Width" in line:
+                    line = line.replace("\n", "")
+                    self.pixels = int(line.split("=")[-1])
+                    log.info("pixels is [%s]" % self.pixels)
+
+        except:
+            log.critical("Problem proccessing" + str(ccf_file) + \
+                          str(sys.exc_info()))
+            return 0, "fail"
 
     def setup_pipe(self):
         """ Create a pipe connection to the csharp version of the single
@@ -68,25 +88,34 @@ class SaperaCMD(object):
 
         self.trigger_snap()
         self.trigger_save()
+            
+        self.trigger_next() # just hit enter
 
-        line = self.pipe.stdout.readline().replace('\n', '')
-        log.info("READ " + str(line))
-        log.info("\n")
-
-        #time.sleep(1)
-        log.info("Open file")
+        log.debug("Open file")
         result, data = self.grab_data()
-        log.info(str(data[0:3]))
-        log.info("Done file")
-        #time.sleep(1)
+        log.debug(str(data[0:3]))
+        log.debug("Done file")
 
-        log.info("WR enter to trigger repeat")
-        self.pipe.stdin.write("\n")
-        line = self.pipe.stdout.readline().replace('\n', '')
-        log.info("READ " + str(line))
-        log.info("\n")
+        self.trigger_repeat()
 
         return result, data
+
+
+    def trigger_repeat(self):
+        """ Convenience function to illustrate the order of operations.
+        """
+        log.debug("WR enter to trigger repeat")
+        self.pipe.stdin.write("\n")
+        line = self.pipe.stdout.readline().replace('\n', '')
+        log.debug("READ " + str(line))
+        log.debug("\n")
+
+    def trigger_next(self):
+        """ Convenience function to illustrate the order of operations.
+        """
+        line = self.pipe.stdout.readline().replace('\n', '')
+        log.debug("READ " + str(line))
+        log.debug("\n")
 
     def trigger_save(self):
         """ Convenience function to illustrate the order of operations.
@@ -118,7 +147,8 @@ class SaperaCMD(object):
             in_file.close()
             pos = 0
             # 2048 pixels of data, 4096 bytes
-            while pos < 4095:
+            byte_size = (self.pixels * 2) - 1
+            while pos < byte_size:
                 pixel_one = all_data[pos] + all_data[pos+1]
                 data_pak = struct.unpack("H", pixel_one)
                 img_data.append(data_pak[0])
@@ -140,7 +170,7 @@ class SaperaCMD(object):
         # write a bunch of q's and read the lines to close it out
         try:
             for i in range(10):
-                log.info("WR q" + str(i))
+                log.debug("WR q" + str(i))
                 self.pipe.stdin.write("q\n")
                 line = self.pipe.stdout.readline().replace('\n','')
                 
@@ -163,4 +193,4 @@ class Cobra(SaperaCMD):
         self.card = card
         self.ccf = ccf
 
-
+        self.set_pixel_size()
