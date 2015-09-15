@@ -1,0 +1,12 @@
+C:\DALSA\Sapera\Examples\NET\GrabConsole\CSharp\bin\Debug\SapNETCSharpGrabConsole.exe
+C:\DALSA\Sapera\Examples\NET\GrabConsole\CSharp\bin\Debug\SapNETCSharpGrabConsole.pdb
+C:\DALSA\Sapera\Examples\NET\GrabConsole\CSharp\bin\Debug\DALSA.SaperaLT.SapClassBasic.dll
+C:\DALSA\Sapera\Examples\NET\GrabConsole\CSharp\obj\Debug\ResolveAssemblyReference.cache
+C:\DALSA\Sapera\Examples\NET\GrabConsole\CSharp\obj\Debug\SapNETCSharpGrabConsole.exe
+C:\DALSA\Sapera\Examples\NET\GrabConsole\CSharp\obj\Debug\SapNETCSharpGrabConsole.pdb
+C:\DALSA\Sapera\Examples\NET\newGrabConsole\CSharp\obj\Debug\SapNETCSharpGrabConsole.exe
+C:\DALSA\Sapera\Examples\NET\newGrabConsole\CSharp\obj\Debug\SapNETCSharpGrabConsole.pdb
+C:\DALSA\Sapera\Examples\NET\newGrabConsole\CSharp\bin\Debug\SapNETCSharpGrabConsole.exe
+C:\DALSA\Sapera\Examples\NET\newGrabConsole\CSharp\bin\Debug\SapNETCSharpGrabConsole.pdb
+C:\DALSA\Sapera\Examples\NET\newGrabConsole\CSharp\bin\Debug\DALSA.SaperaLT.SapClassBasic.dll
+C:\DALSA\Sapera\Examples\NET\newGrabConsole\CSharp\obj\Debug\ResolveAssemblyReference.cache
