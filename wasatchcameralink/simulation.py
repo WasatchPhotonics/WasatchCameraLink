@@ -44,39 +44,6 @@ class SimulatedPipeDevice(object):
         self.pattern_position = 0
         return True
 
-class SimulatedCobraSLED(SimulatedPipeDevice):
-    """ Display a sled output based stored data. Apply noise and
-    other shifts based on sent commands.
-    """
-    def __init__(self, sled_type="single"):
-        super(SimulatedCobraSLED, self).__init__()
-        self.sled_type = sled_type
-
-        if self.sled_type == "single":
-            self.waveform = self.load_single_sled()
-
-        self.noise_floor = 50
-        self.noise_ceiling = 150
-
-    def load_single_sled(self, filename="cobra_singlesled.txt"):
-        """ Read from an example file, use as baseline data.
-        """
-        
-        path, file_name = os.path.split(__file__)
-        filen = "%s/%s" % (path, filename)
-        self.base_data = numpy.loadtxt(filen, delimiter=",")
-
-
-    def grab_pipe(self):
-        """ Apply randomness at each grab.
-        """
-        
-        nru = numpy.random.uniform
-        noise_data = nru(self.noise_floor, self.noise_ceiling, 2048)
-        new_data = self.base_data + noise_data
-        return True, new_data
-            
-
 class SimulatedSpectraDevice(SimulatedPipeDevice):
     """ Given a class of spectra, create a default waveform, and return
     randomized data along that waveform.
@@ -142,3 +109,44 @@ class SimulatedSpectraDevice(SimulatedPipeDevice):
         new_data = self.base_data + noise_data
         return True, new_data
             
+
+
+class SimulatedCobraSLED(SimulatedPipeDevice):
+    """ Display a sled output based stored data. Apply noise and
+    other shifts based on sent commands.
+    """
+    def __init__(self, sled_type="single"):
+        super(SimulatedCobraSLED, self).__init__()
+        self.sled_type = sled_type
+
+        if self.sled_type == "single":
+            self.base_data = self.load_single_sled()
+
+        self.noise_floor = 0
+        self.noise_ceiling = 1
+
+    def load_single_sled(self, filename="cobra_singlesled.txt"):
+        """ Read from an example file, use as baseline data.
+        """
+       
+        # Stored txt is in unknown path at runtime 
+        path, file_name = os.path.split(__file__)
+        filen = "%s/%s" % (path, filename)
+        return numpy.loadtxt(filen, delimiter=",")
+
+    def grab_pipe(self):
+        """ Apply randomness at each grab.
+        """
+        
+        nru = numpy.random.uniform
+        noise_data = nru(self.noise_floor, self.noise_ceiling, 2048)
+        new_data = self.base_data + noise_data
+        return True, new_data
+            
+    def set_gain(self, gain):
+        """ Reload the base data, multiply by the gain for easily
+        visualizable results.
+        """
+        new_data = self.load_single_sled()
+        new_data = new_data * gain
+        self.base_data = new_data

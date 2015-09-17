@@ -1,6 +1,7 @@
 """ simulated cameralink device test cases
 """
 
+import numpy
 import unittest
 
 from wasatchcameralink import simulation
@@ -40,6 +41,37 @@ class TestSimulatedSLED(unittest.TestCase):
                 found_other += 1
 
         self.assertGreater(found_other, 0)
+
+    def test_gain_moves_baseline(self):
+        self.assertTrue(self.dev.setup_pipe())
+        result, data = self.dev.grab_pipe()
+
+        start_baseline = self.get_baseline(self.dev, 100)
+        self.assertGreater(start_baseline, 2400)
+        self.assertLess(start_baseline, 2600)
+        
+        # Change the gain, verify the baseline moves up
+        result = self.dev.set_gain(100)
+        new_baseline = self.get_baseline(self.dev, 100)
+        self.assertGreater(new_baseline, start_baseline)
+
+        # Now set it back to one, make sure it matches
+        result = self.dev.set_gain(1)
+        reset_baseline = self.get_baseline(self.dev, 100)
+        self.assertGreater(reset_baseline, start_baseline - 1)
+        self.assertLess(reset_baseline, start_baseline + 1)
+
+    def get_baseline(self, device, iterations=100):
+        """ Helper function to get the average value of acquisitions.
+        """
+        # Get an average baseline
+        avg_data = []
+        for i in range(10):
+            result, data = self.dev.grab_pipe()
+            avg_data.append(numpy.average(data))
+        baseline = numpy.sum(avg_data) / len(avg_data)
+
+        return baseline
 
 class TestSimulatedSpectra(unittest.TestCase):
 
