@@ -5,6 +5,42 @@ import unittest
 
 from wasatchcameralink import simulation
 
+class TestSimulatedSLED(unittest.TestCase):
+    def setUp(self):
+        self.dev = simulation.SimulatedCobraSLED()
+    
+    def test_pipe_cycle(self):
+        self.assertTrue(self.dev.setup_pipe())
+
+        result, data = self.dev.grab_pipe()
+        self.assertTrue(result)
+        self.assertEqual(len(data), 2048)
+
+        self.assertTrue(self.dev.close_pipe())
+   
+    def test_data_in_range(self):
+        self.assertTrue(self.dev.setup_pipe())
+        result, data = self.dev.grab_pipe()
+
+        # Verify that the min/max is in range 
+        result, data = self.dev.grab_pipe()
+        self.assertGreater(data[0], 100)
+        self.assertLess(data[0], 4000)
+        self.assertGreater(data[1024], 2000)
+        self.assertLess(data[1024], 4000)
+
+        # Take 10 reads, make sure at least one is different to show
+        # noise application
+        found_other = 0
+        start_val = data[0]
+        for i in range(10):
+            result, data = self.dev.grab_pipe()
+
+            if data[0] != start_val:
+                found_other += 1
+
+        self.assertGreater(found_other, 0)
+
 class TestSimulatedSpectra(unittest.TestCase):
 
     def setUp(self):
