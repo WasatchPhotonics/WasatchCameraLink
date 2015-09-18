@@ -124,7 +124,7 @@ class SimulatedCobraSLED(SimulatedPipeDevice):
             self.base_data = self.load_single_sled()
 
         self.noise_floor = 0
-        self.noise_ceiling = 1
+        self.noise_ceiling = 10
 
     def load_single_sled(self, filename="cobra_singlesled.txt"):
         """ Read from an example file, use as baseline data.
