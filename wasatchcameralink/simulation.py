@@ -107,7 +107,8 @@ class SimulatedSpectraDevice(SimulatedPipeDevice):
         nru = numpy.random.uniform
         noise_data = nru(self.noise_floor, self.noise_ceiling, 2048)
         new_data = self.base_data + noise_data
-        return True, new_data
+        test_data = numpy.array(new_data).astype(int)
+        return True, test_data
             
 
 
@@ -141,7 +142,8 @@ class SimulatedCobraSLED(SimulatedPipeDevice):
         nru = numpy.random.uniform
         noise_data = nru(self.noise_floor, self.noise_ceiling, 2048)
         new_data = self.base_data + noise_data
-        return True, new_data
+        test_data = numpy.array(new_data).astype(int)
+        return True, test_data
             
     def set_gain(self, gain):
         """ Reload the base data, multiply by the gain for easily
