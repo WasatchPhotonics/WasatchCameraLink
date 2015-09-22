@@ -149,6 +149,12 @@ class SimulatedCobraSLED(SimulatedPipeDevice):
         """ Reload the base data, multiply by the gain for easily
         visualizable results.
         """
-        new_data = self.load_single_sled()
-        new_data = new_data * gain
+        new_data = self.base_data * gain
+        self.base_data = new_data
+            
+    def set_offset(self, offset):
+        """ Reload the base data, add by the (offset*10) for easily
+        visualizable results.
+        """
+        new_data = self.base_data + (offset * 100)
         self.base_data = new_data
