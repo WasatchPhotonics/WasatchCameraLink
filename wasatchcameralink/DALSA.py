@@ -4,8 +4,11 @@ Uses a modified version of the Sapera .NET example code to read single
 lines of data from the device at a time.
 """
 
+
 import os
 import sys
+import time
+import serial
 import struct
 import logging
         
@@ -13,6 +16,8 @@ import subprocess
 from subprocess import Popen, PIPE
 
 log = logging.getLogger(__name__)
+
+COM_PORT = 5 # windows reported number 
 
 class SaperaCMD(object):
     """ Base class that calls the sapera grab console modified
@@ -182,7 +187,8 @@ class SaperaCMD(object):
 
 class Cobra(SaperaCMD):
     """ Use a Dalsa frame grabber and the stdin/stdout customized
-    example from Sapera.
+    example from Sapera. Provide device control wrappers around the
+    serial port interface.
     """
     def __init__(self, card="Xcelera-CL_LX1_1", ccf="cobra"):
         super(Cobra, self).__init__()
@@ -192,6 +198,121 @@ class Cobra(SaperaCMD):
         self.ccf = ccf
 
         self.set_pixel_size()
+        self.open_port()
+        self.start_scan()
+        self.close_port()
+
+    def set_gain(self, gain):
+        """ write the gain value over serial.
+        """
+        return self.open_write_close("gain %s" % gain)
+
+    def set_offset(self, offset):
+        """ write the offset value over serial.
+        """
+        return self.open_write_close("offset %s" % offset)
+
+    def open_write_close(self, command):
+        """ Open the serial port, write the command, close it.
+        """
+        self.open_port()
+        self.write_command(command)
+        self.close_port()
+        return True
+
+    def close_port(self):
+        try:
+            self.serial_port.close()
+            return 1
+        except:
+            log.critical("Problem closing port: " + str(sys.exc_info()))
+        return 0
+
+
+    def open_port(self):
+        """ Connect to the serial port for the Cobra cameralink board,
+        verify the version number is as expected.  """
+
+        com_port = COM_PORT - 1 # zero based in python, 1 based in
+                                # windows
+        self.serial_port = serial.Serial()
+        self.serial_port.baudrate = 9600
+        self.serial_port.port = int(com_port)
+        self.serial_port.timeout = 1
+        self.serial_port.writeTimeout = 1
+
+        try:
+            result = self.serial_port.close()  # yes, close before open
+            result = self.serial_port.open()
+        except:
+            log.critical("Problem close/open: " + str(sys.exc_info()))
+            return 0
+            
+        try:
+            cmd_test = 'rev\r'
+            result = self.serial_port.write(cmd_test)
+        except:
+            log.critical("Problem writing to: %s " % com_port)
+            log.critical(str(sys.exc_info()))
+            return 0
+       
+        try:
+            result = self.serial_port.read(10)
+            if "-" not in result:
+                log.critical("Version read failure: " + result)
+                return 0
+            
+            return 1
+
+        except:
+            log.critical("Problem reading from com " + str(com_port))
+            log.critical(str(sys.exc_info()))
+            return -2
+
+        log.critical("Problem connecting to port")
+        return 0
+
+    def start_scan(self):
+        """ Issue the required startup parameters to set the device in
+        internal triggered mode.
+        """
+        if not self.write_command("init"):
+            return 0
+        if not self.write_command("ats 0"):
+            return 0
+        if not self.write_command("lsc 1"):
+            return 0
+        return 1
+
+    def write_command(self, command, read_bytes=7):
+        """ append required control characters to the specified command,
+        write to the device over the serial port, and expect OK from the
+        device.
+        """
+
+        try:
+            fin_command = command + "\r"
+            log.info("send command [%s]" % fin_command)
+            result = self.serial_port.write(str(fin_command))
+            self.serial_port.flush()
+        except:
+            log.critical("Problem writing %s" % command)
+            log.critical("%s", sys.exc_info())
+            return 0
+
+        try:
+            result = self.serial_port.read(read_bytes)
+            log.info("Serial read result [%r]" % result)
+            if "<ok>" not in result:
+                log.critical("Command failure: %s,%s" %(command,result))
+                return 0
+        except:
+            log.critical("Problem reading from com " + str(com_port))
+            log.critical(str(sys.exc_info()))
+            return -2
+
+        log.info("command write")
+        return 1
 
 
 class BaslerSprint4K(SaperaCMD):
