@@ -15,20 +15,20 @@ class SimulatedPipeDevice(object):
     """
 
     def __init__(self, pattern_jump=1, top_level=1000):
-        log.debug("Startup")
+        #log.debug("Startup")
         self.pattern_position = 0
         self.data_length = 1024
         self.top_level = top_level
         self.pattern_jump = pattern_jump
 
     def setup_pipe(self):
-        log.info("Setup pipe device")
+        #log.info("Setup pipe device")
         return True
 
     def grab_pipe(self):
         """ Create a cycling test pattern based on the current position
         """
-        log.debug("Grab pipe")
+        #log.debug("Grab pipe")
         start = self.pattern_position 
         end = self.pattern_position + self.top_level
         data = numpy.linspace(start, end, 1024)
@@ -40,9 +40,18 @@ class SimulatedPipeDevice(object):
         return True, data
 
     def close_pipe(self):
-        log.info("Close pipe device")
+        #log.info("Close pipe device")
         self.pattern_position = 0
         return True
+        
+    def set_gain(self, gain):
+        """ Placeholder function to simulate settings change
+        """    
+
+    def set_offset(self, offset):
+        """ Placeholder function to simulate settings change
+        """    
+
 
 class SimulatedSpectraDevice(SimulatedPipeDevice):
     """ Given a class of spectra, create a default waveform, and return
@@ -109,8 +118,7 @@ class SimulatedSpectraDevice(SimulatedPipeDevice):
         new_data = self.base_data + noise_data
         test_data = numpy.array(new_data).astype(int)
         return True, test_data
-            
-
+        
 
 class SimulatedCobraSLED(SimulatedPipeDevice):
     """ Display a sled output based stored data. Apply noise and
