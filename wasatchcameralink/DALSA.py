@@ -36,6 +36,21 @@ class SaperaCMD(object):
         self.startupinfo = subprocess.STARTUPINFO()
         self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
+        self.stop_sapgrab()
+
+    def stop_sapgrab(self):
+        """ Kill any running instances of the sapera grab application.
+        No clean, no confirmation, just kill.
+        """
+        # > /NUL is to keep the 'sent termination...' message from printing
+        # Would be nice to capture it and send it to log
+        task_cmd = "taskkill /F /IM SapNETCSharpGrabConsole.exe"
+        grab_kill = '''"%s 1> NUL 2> NUL"''' % task_cmd
+        result = os.system(grab_kill)
+        print "Kill result: %s" % result
+        return True
+
+
     def set_pixel_size(self):
         """ Process the specified ccf file, store the number of pixels.
         """
@@ -198,19 +213,33 @@ class Cobra(SaperaCMD):
         self.ccf = ccf
 
         self.set_pixel_size()
-        self.open_port()
-        self.start_scan()
-        self.close_port()
+        #self.open_port()
+        #self.start_scan()
+        #self.close_port()
+
+    def start_scan(self):
+        """ Issue the required startup parameters to set the device in
+        internal triggered mode.
+        """
+        if not self.write_command("init"):
+            return 0
+        if not self.write_command("ats 0"):
+            return 0
+        if not self.write_command("lsc 1"):
+            return 0
+        return 1
 
     def set_gain(self, gain):
         """ write the gain value over serial.
         """
-        return self.open_write_close("gain %s" % gain)
+        #return self.open_write_close("gain %s" % gain)
+        return self.write_command("gain %s" % gain)
 
     def set_offset(self, offset):
         """ write the offset value over serial.
         """
-        return self.open_write_close("offset %s" % offset)
+        #return self.open_write_close("offset %s" % offset)
+        return self.write_command("offset %s" % offset)
 
     def open_write_close(self, command):
         """ Open the serial port, write the command, close it.
@@ -248,41 +277,8 @@ class Cobra(SaperaCMD):
             log.critical("Problem close/open: " + str(sys.exc_info()))
             return 0
             
-        try:
-            cmd_test = 'rev\r'
-            result = self.serial_port.write(cmd_test)
-        except:
-            log.critical("Problem writing to: %s " % com_port)
-            log.critical(str(sys.exc_info()))
-            return 0
-       
-        try:
-            result = self.serial_port.read(10)
-            if "-" not in result:
-                log.critical("Version read failure: " + result)
-                return 0
-            
-            return 1
-
-        except:
-            log.critical("Problem reading from com " + str(com_port))
-            log.critical(str(sys.exc_info()))
-            return -2
-
-        log.critical("Problem connecting to port")
         return 0
 
-    def start_scan(self):
-        """ Issue the required startup parameters to set the device in
-        internal triggered mode.
-        """
-        if not self.write_command("init"):
-            return 0
-        if not self.write_command("ats 0"):
-            return 0
-        if not self.write_command("lsc 1"):
-            return 0
-        return 1
 
     def write_command(self, command, read_bytes=7):
         """ append required control characters to the specified command,
@@ -291,8 +287,8 @@ class Cobra(SaperaCMD):
         """
 
         try:
-            fin_command = command + "\r"
-            log.info("send command [%s]" % fin_command)
+            fin_command = command + '\r'
+            log.debug("send command [%s]" % fin_command)
             result = self.serial_port.write(str(fin_command))
             self.serial_port.flush()
         except:
@@ -302,7 +298,7 @@ class Cobra(SaperaCMD):
 
         try:
             result = self.serial_port.read(read_bytes)
-            log.info("Serial read result [%r]" % result)
+            log.debug("Serial read result [%r]" % result)
             if "<ok>" not in result:
                 log.critical("Command failure: %s,%s" %(command,result))
                 return 0
@@ -311,7 +307,7 @@ class Cobra(SaperaCMD):
             log.critical(str(sys.exc_info()))
             return -2
 
-        log.info("command write")
+        log.debug("command write")
         return 1
 
 

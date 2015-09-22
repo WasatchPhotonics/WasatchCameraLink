@@ -26,6 +26,26 @@ class TestCobra(unittest.TestCase):
 
         self.assertTrue(self.dev.close_pipe())
 
+    def test_speed(self):
+        self.assertTrue(self.dev.setup_pipe())
+
+        result, data = self.dev.grab_pipe()
+        forc_res = self.dev.open_port()
+        forc_res = self.dev.start_scan()
+        avg_default = numpy.average(data)
+
+        time_start = time.time()
+        for i in range(255):
+            result = self.dev.set_gain(100)
+            result, data = self.dev.grab_pipe()
+        time_stop = time.time()
+
+        time_diff = time_stop - time_start
+        log.info("time diff: %s" % time_diff)
+
+        self.assertTrue(self.dev.close_pipe())
+
+
     def test_gain(self):
         # Make sure no light is reaching the detector
         self.assertTrue(self.dev.setup_pipe())
