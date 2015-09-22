@@ -157,12 +157,28 @@ class SimulatedCobraSLED(SimulatedPipeDevice):
         """ Reload the base data, multiply by the gain for easily
         visualizable results.
         """
-        new_data = self.base_data * gain
+        new_data = self.base_data + gain
         self.base_data = new_data
+        pass
             
     def set_offset(self, offset):
         """ Reload the base data, add by the (offset*10) for easily
         visualizable results.
         """
-        new_data = self.base_data + (offset * 100)
+        new_data = self.base_data + offset
         self.base_data = new_data
+
+    def open_port(self):
+        """ simulated serial control
+        """
+        return True
+
+    def close_port(self):
+        """ simulated serial control
+        """
+        return True
+
+    def start_scan(self):
+        """ simulated serial control
+        """
+        return True
