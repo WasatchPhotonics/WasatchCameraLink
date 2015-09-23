@@ -213,9 +213,6 @@ class Cobra(SaperaCMD):
         self.ccf = ccf
 
         self.set_pixel_size()
-        #self.open_port()
-        #self.start_scan()
-        #self.close_port()
 
     def start_scan(self):
         """ Issue the required startup parameters to set the device in
