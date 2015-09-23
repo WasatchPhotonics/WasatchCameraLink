@@ -47,7 +47,7 @@ class SaperaCMD(object):
         task_cmd = "taskkill /F /IM SapNETCSharpGrabConsole.exe"
         grab_kill = '''"%s 1> NUL 2> NUL"''' % task_cmd
         result = os.system(grab_kill)
-        print "Kill result: %s" % result
+        log.info("Kill result: %s" % result)
         return True
 
 
