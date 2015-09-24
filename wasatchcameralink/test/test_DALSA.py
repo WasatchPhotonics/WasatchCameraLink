@@ -47,18 +47,26 @@ class TestCobra(unittest.TestCase):
 
 
     def test_gain(self):
-        # Make sure no light is reaching the detector
-        self.assertTrue(self.dev.setup_pipe())
+        # Make sure no light is reaching the detector when running this test
 
+        # Yes, this is the correct order - see the barbecue application for
+        # details. An alternative if speed is not required is the open write
+        # close pattern in the test below
+        self.assertTrue(self.dev.setup_pipe())
         result, data = self.dev.grab_pipe()
+        forc_res = self.dev.open_port()
+        forc_res = self.dev.start_scan()
+
+        # Set to default gain
+        result = self.dev.set_gain(187)
+        result, data = self.dev.grab_pipe()
+        
         avg_default = numpy.average(data)
 
         time.sleep(0.5)
         result = self.dev.set_gain(100)
         result, data = self.dev.grab_pipe()
         avg_low_gain = numpy.average(data)
-
-        log.info("uh %s, %s" % ( avg_default, avg_low_gain))
 
         gain_diff_threshold = 1000
         gain_diff = abs(avg_low_gain - avg_default)
@@ -73,9 +81,11 @@ class TestCobra(unittest.TestCase):
 
         new_diff = abs(new_default - avg_default)
         self.assertLess(new_diff, 10)
+
+        forc_res = self.dev.close_port()
         self.assertTrue(self.dev.close_pipe())
 
-    def test_new_gain(self):
+    def test_openwriteclose_gain(self):
         self.assertTrue(self.dev.setup_pipe())
 
         result, data = self.dev.grab_pipe()
@@ -83,9 +93,38 @@ class TestCobra(unittest.TestCase):
         self.assertEqual(len(data), 2048)
 
         self.assertTrue(self.dev.open_write_close("gain 187"))
+        result, data = self.dev.grab_pipe()
+        avg_default = numpy.average(data)
+
+        self.assertTrue(self.dev.open_write_close("gain 100"))
+        result, data = self.dev.grab_pipe()
+        avg_low_gain = numpy.average(data)
+
+        gain_diff_threshold = 1000
+        gain_diff = abs(avg_low_gain - avg_default)
+        self.assertGreater(gain_diff, gain_diff_threshold)
+
         self.assertTrue(self.dev.close_pipe())
 
+
+    def test_offset(self):
+        self.assertTrue(self.dev.setup_pipe())
+
+        result, data = self.dev.grab_pipe()
         self.assertTrue(result)
+        self.assertEqual(len(data), 2048)
+
+        self.assertTrue(self.dev.open_write_close("offset 0"))
+        result, data = self.dev.grab_pipe()
+        avg_default = numpy.average(data)
+
+        self.assertTrue(self.dev.open_write_close("offset 255"))
+        result, data = self.dev.grab_pipe()
+        avg_high_offset = numpy.average(data)
+
+        self.assertGreater(avg_default, avg_high_offset)
+
+        self.assertTrue(self.dev.close_pipe())
 
         
 

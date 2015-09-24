@@ -191,9 +191,10 @@ class SaperaCMD(object):
                 log.debug("WR q" + str(i))
                 self.pipe.stdin.write("q\n")
                 line = self.pipe.stdout.readline().replace('\n','')
-                
-            self.pipe.stdin.flush()
-            self.pipe.stdout.flush()
+            
+            #log.info("Flush pipes")
+            #self.pipe.stdin.flush()
+            #self.pipe.stdout.flush()
         except:
             log.warn("close pipe fail: " + str(sys.exc_info()))
 
@@ -235,7 +236,6 @@ class Cobra(SaperaCMD):
     def set_offset(self, offset):
         """ write the offset value over serial.
         """
-        #return self.open_write_close("offset %s" % offset)
         return self.write_command("offset %s" % offset)
 
     def open_write_close(self, command):

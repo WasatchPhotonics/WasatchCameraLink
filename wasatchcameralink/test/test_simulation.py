@@ -30,17 +30,18 @@ class TestSimulatedSLED(unittest.TestCase):
         self.assertGreater(data[1024], 2000)
         self.assertLess(data[1024], 4000)
 
-        # Take 10 reads, make sure at least one is different to show
+        # Take N reads, make sure at least one is different to show
         # noise application
         found_other = 0
         start_val = data[0]
-        for i in range(10):
+        while found_other < 1000:
             result, data = self.dev.grab_pipe()
 
+            found_other += 1
             if data[0] != start_val:
-                found_other += 1
+                found_other = 2000
 
-        self.assertGreater(found_other, 0)
+        self.assertEqual(found_other, 2000)
 
     def test_gain_moves_baseline(self):
         self.assertTrue(self.dev.setup_pipe())
@@ -55,11 +56,25 @@ class TestSimulatedSLED(unittest.TestCase):
         new_baseline = self.get_baseline(self.dev, 100)
         self.assertGreater(new_baseline, start_baseline)
 
-        # Now set it back to one, make sure it matches
-        result = self.dev.set_gain(1)
-        reset_baseline = self.get_baseline(self.dev, 100)
-        self.assertGreater(reset_baseline, start_baseline - 1)
-        self.assertLess(reset_baseline, start_baseline + 1)
+
+    def test_offset_moves_baseline(self):
+        self.assertTrue(self.dev.setup_pipe())
+        result, data = self.dev.grab_pipe()
+
+        start_baseline = self.get_baseline(self.dev, 100)
+        self.assertGreater(start_baseline, 2400)
+        self.assertLess(start_baseline, 2600)
+        
+        # Change the offset, verify the baseline moves up
+        result = self.dev.set_offset(100)
+        new_baseline = self.get_baseline(self.dev, 100)
+        self.assertGreater(new_baseline, start_baseline)
+
+    def test_simulated_port(self):
+        self.assertTrue(self.dev.setup_pipe())
+        self.assertTrue(self.dev.open_port())
+        self.assertTrue(self.dev.start_scan())
+        self.assertTrue(self.dev.close_port())
 
     def get_baseline(self, device, iterations=100):
         """ Helper function to get the average value of acquisitions.
@@ -96,7 +111,7 @@ class TestSimulatedSpectra(unittest.TestCase):
 
 
         # Roll through a bunch of simulated acquisitions, repeat
-        for i in range(500):
+        for i in range(100):
             result, data = self.dev.grab_pipe()
 
             # Psuedo-verify the randomness
