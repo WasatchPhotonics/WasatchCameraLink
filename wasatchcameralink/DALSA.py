@@ -201,6 +201,7 @@ class SaperaCMD(object):
         return 1
 
 
+
 class Cobra(SaperaCMD):
     """ Use a Dalsa frame grabber and the stdin/stdout customized
     example from Sapera. Provide device control wrappers around the
@@ -315,6 +316,19 @@ class BaslerSprint4K(SaperaCMD):
     def __init__(self, card="Xcelera-CL_LX1_1", ccf="BaslerSprint4K"):
         super(BaslerSprint4K, self).__init__()
         log.debug("Basler sprint 4k Startup")
+
+        self.card = card
+        self.ccf = ccf
+
+        self.set_pixel_size()
+
+class OPTOCobra(Cobra):
+    """ Re-use the same cobra inteface, specify a different ccf file.
+    """
+    #def __init__(self, card="Xcelera-CL_LX1_1", ccf="opto"):
+    def __init__(self, card="Xcelera-CL_PX4_1", ccf="opto"):
+        super(OPTOCobra, self).__init__()
+        log.debug("OPTO Cobra Startup")
 
         self.card = card
         self.ccf = ccf
